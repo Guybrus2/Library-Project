@@ -3,9 +3,10 @@
 from . import db
 
 
-class Book(db.Model):
+class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    author = db.Column(db.String(200), nullable=False)
+    name = db.Column(db.String(200), nullable=False)
+    creator = db.Column(db.String(200), nullable=False)
     year_published = db.Column(db.Integer, nullable=False)
-    types = db.Column(db.Integer, nullable=False)
+    genre = db.Column(db.String(200), nullable=False)
+    picture_url = db.Column(db.String(500), nullable=True) 
