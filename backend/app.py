@@ -72,6 +72,23 @@ def get_games():
         }), 500                                    #
 
 
+@app.route('/user',methods = ['POST'])
+def login():
+    data = request.json
+    username = data.get('name')
+    password = data.get('password')
+    user = User.query.filter_by(username = username).first()
+    if user and user.password == password:
+         return jsonify({
+            'message': 'Login successful',
+            'user_id': user.id,
+            'username': user.username
+        }), 200
+    else:
+        return jsonify({'message': 'Invalid credentials'}), 401
+  
+
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Create all database tables defined in your  models(check the models folder)

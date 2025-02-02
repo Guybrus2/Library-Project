@@ -56,9 +56,25 @@ async function addGame() {
     }
 }
 
-async function login(){
-    pass
+async function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    try {
+        const response = await axios.post('http://127.0.0.1:5000/login', {
+            name: username,
+            password: password
+        });
+
+
+        console.log('Login successful:', response.data);
+    } catch (error) {
+
+        console.error('User does not exist or login failed:', error);
+        alert('Failed to login');
+    }
 }
+
 
 async function logout(){
     pass
@@ -78,3 +94,4 @@ async function edit_game(){
 }
 // Load all games when the page loads
 document.addEventListener('DOMContentLoaded', getGames);
+
