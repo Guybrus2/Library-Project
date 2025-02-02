@@ -56,9 +56,25 @@ async function addGame() {
     }
 }
 
-async function register() {
-    
+async function login(){
+    pass
 }
 
+async function logout(){
+    pass
+}
+async function del_game(){
+    pass
+}
+async function add_customer(){
+    pass
+}
+
+async function edit_customer(){
+    pass
+}
+async function edit_game(){
+    pass
+}
 // Load all games when the page loads
 document.addEventListener('DOMContentLoaded', getGames);
