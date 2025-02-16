@@ -153,7 +153,16 @@ if (addCustomerForm) {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-    if (document.getElementById('games-list')) {
+    // Check if the user is already logged in
+    if (localStorage.getItem('isloggedIn') === 'true') {
+        // Hide the authentication section and show the main section
+        document.getElementById("auth-section").style.display = "none";
+        document.getElementById("main-section").classList.remove('hidden');
         getGames();
+    } else {
+        // Optionally, ensure the correct sections are visible/invisible
+        document.getElementById("auth-section").style.display = "block";
+        document.getElementById("main-section").classList.add('hidden');
     }
 });
+
