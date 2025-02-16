@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="he">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ניהול לקוחות</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>ניהול לקוחות</h1>
+
+      <!-- Form to add a new customer -->
+      <h2>הוסף לקוח חדש</h2>
+      <form id="add-customer-form">
+        <div class="form-group">
+          <input type="text" id="customer-name" placeholder="שם הלקוח" required />
+        </div>
+        <button type="submit">הוסף לקוח</button>
+      </form>
+
+      <!-- Customers List -->
+      <h2>רשימת לקוחות</h2>
+      <div id="customers-list">
+        <!-- Customer cards will be injected here -->
+      </div>
+
+      <!-- Button to return to the main page -->
+      <button onclick="window.location.href='index.html'">חזרה לדף הראשי</button>
+    </div>
+
+    <!-- Axios for AJAX requests -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+      // Function to load all customers from the API
+      async function getCustomers() {
+        try {
+          const response = await axios.get('http://127.0.0.1:5000/customers');
+          const customersList = document.getElementById('customers-list');
+          customersList.innerHTML = ''; // Clear any existing list
+
+          response.data.customers.forEach(customer => {
+            customersList.innerHTML += `
+              <div class="customer-card">
+                <p>מספר: ${customer.id}</p>
+                <p>שם: ${customer.name}</p>
+              </div>
+            `;
+          });
+        } catch (error) {
+          console.error('שגיאה בטעינת הלקוחות:', error);
+          alert('נכשל בטעינת הלקוחות');
+        }
+      }
+
+      // Function to add a new customer
+      async function addCustomer(event) {
+        event.preventDefault(); // Prevent page refresh
+        const nameInput = document.getElementById('customer-name');
+        const customerData = { name: nameInput.value };
+
+        try {
+          const response = await axios.post('http://127.0.0.1:5000/addCustomer', customerData);
+          alert(response.data.message);
+          nameInput.value = ''; // Clear the input field
+          getCustomers(); // Refresh the customers list
+        } catch (error) {
+          console.error('Error adding customer:', error);
+          alert('Error adding customer');
+        }
+      }
+
+      // Add event listener for the form submission
+      document.getElementById('add-customer-form').addEventListener('submit', addCustomer);
+
+      // Load customers on page load
+      document.addEventListener('DOMContentLoaded', getCustomers);
+    </script>
+  </body>
+</html>

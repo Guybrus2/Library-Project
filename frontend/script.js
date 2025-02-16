@@ -1,97 +1,159 @@
-// Function to get all games from the API
+
 async function getGames() {
     try {
         const response = await axios.get('http://127.0.0.1:5000/games');
         const gamesList = document.getElementById('games-list');
-        gamesList.innerHTML = ''; // Clear existing list
-
-        response.data.games.forEach(game => {
-            gamesList.innerHTML += `
-                <div class="game-card">
-                    <h3>${game.name}</h3>
-                    <p>Creator: ${game.creator}</p>
-                    <p>Year: ${game.year_published}</p>
-                    <p>Genre: ${game.genre}</p>
-                    ${game.picture_url ? `<img src="${game.picture_url}" alt="${game.name}" class="game-image">` : ''}
-                </div>
-            `;
-        });
+        if (gamesList) {
+            gamesList.innerHTML = ''; 
+            response.data.games.forEach(game => {
+                gamesList.innerHTML += `
+                    <div class="game-card" data-game-id="${game.id}">
+                        <h3>${game.name}</h3>
+                        <p>Creator: ${game.creator}</p>
+                        <p>Year: ${game.year_published}</p>
+                        <p>Genre: ${game.genre}</p>
+                        ${game.picture_url ? `<img src="${game.picture_url}" alt="${game.name}" class="game-image">` : ''}
+                        <button class="remove-btn" onclick="del_game(${game.id})">Remove Game</button>
+                        <button onclick="editGame(${game.id})">Edit Game</button>
+                    </div>
+                `;
+            });
+        }
     } catch (error) {
         console.error('Error fetching games:', error);
         alert('Failed to load games');
     }
 }
 
-// Function to add a new game to the database
-async function addGame() {
-    const name = document.getElementById('game-name').value;
-    const creator = document.getElementById('game-creator').value;
-    const year_published = document.getElementById('game-year-published').value;
-    const genre = document.getElementById('game-genre').value;
-    const picture_url = document.getElementById('game-picture-url').value; // New field for images
-
-    try {
-        await axios.post('http://127.0.0.1:5000/games', {
-            name: name,
-            creator: creator,
-            year_published: year_published,
-            genre: genre,
-            picture_url: picture_url // Include the image URL
+function addGame(event) {
+    event.preventDefault();
+    const gameData = {
+        name: document.getElementById("game-name").value,
+        creator: document.getElementById("game-creator").value,
+        year_published: document.getElementById("game-year-published").value,
+        genre: document.getElementById("game-genre").value,
+        picture_url: document.getElementById("game-picture-url").value || "https://via.placeholder.com/150"
+    };
+    axios.post("http://127.0.0.1:5000/games", gameData)
+        .then(response => {
+            alert(response.data.message);
+            getGames(); 
+        })
+        .catch(error => {
+            console.error("Error adding game:", error);
+            alert("Failed to add game.");
         });
-
-        // Clear form fields
-        document.getElementById('game-name').value = '';
-        document.getElementById('game-creator').value = '';
-        document.getElementById('game-year-published').value = '';
-        document.getElementById('game-genre').value = '';
-        document.getElementById('game-picture-url').value = '';
-
-        // Refresh the games list
-        getGames();
-        
-        alert('Game added successfully!');
-    } catch (error) {
-        console.error('Error adding game:', error);
-        alert('Failed to add game');
-    }
 }
 
 async function login() {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-
     try {
-        const response = await axios.post('http://127.0.0.1:5000/login', {
-            name: username,
-            password: password
+        const response = await axios.post('http://127.0.0.1:5000/login', { name: username, password: password }, {
+            headers: { "Content-Type": "application/json" }
         });
-
-
-        console.log('Login successful:', response.data);
+        localStorage.setItem('isloggedIn', 'true');
+        alert(response.data.message);
+        document.getElementById("auth-section").style.display = "none";
+        document.getElementById("main-section").classList.remove('hidden');
+        getGames(); 
     } catch (error) {
-
         console.error('User does not exist or login failed:', error);
         alert('Failed to login');
     }
 }
 
+async function logout() {
+    try {
+        await axios.post("http://127.0.0.1:5000/logout");
+    } catch (error) {
+        console.error("Logout failed:", error);
+    }
+    localStorage.removeItem("isloggedIn");
+    document.getElementById("main-section").classList.add("hidden");
+    document.getElementById("auth-section").classList.remove("hidden");
+    alert("Logged out successfully!");
+}
 
-async function logout(){
-    pass
-}
-async function del_game(){
-    pass
-}
-async function add_customer(){
-    pass
+function del_game(gameId) {
+    axios.delete(`http://127.0.0.1:5000/games/${gameId}`)
+        .then(response => {
+            console.log('Game deleted:', response.data);
+            getGames(); 
+        })
+        .catch(error => {
+            console.error('Error deleting game:', error);
+        });
 }
 
-async function edit_customer(){
-    pass
-}
-async function edit_game(){
-    pass
-}
-// Load all games when the page loads
-document.addEventListener('DOMContentLoaded', getGames);
+async function editGame(gameId) {
+    console.log("Game id =", gameId);
+    try {
+        const response = await axios.get(`http://127.0.0.1:5000/games/${gameId}`);
 
+        const game = response.data;
+        document.getElementById('edit-game-id').value = game.id;
+        document.getElementById('edit-game-name').value = game.name;
+        document.getElementById('edit-game-creator').value = game.creator;
+        document.getElementById('edit-game-year').value = game.year_published;
+        document.getElementById('edit-game-genre').value = game.genre;
+        document.getElementById('edit-game-picture').value = game.picture_url;
+        document.getElementById('edit-game-form').style.display = 'block';
+    } catch (error) {
+        console.error('Error fetching game details:', error);
+        alert('Failed to fetch game details');
+    }
+}
+
+
+async function submitEditForm(event) {
+    event.preventDefault();
+    const gameId = document.getElementById('edit-game-id').value;
+    const updatedGame = {
+        name: document.getElementById('edit-game-name').value,
+        creator: document.getElementById('edit-game-creator').value,
+        year_published: document.getElementById('edit-game-year').value,
+        genre: document.getElementById('edit-game-genre').value,
+        picture_url: document.getElementById('edit-game-picture').value,
+    };
+    try {
+        const response = await axios.put(`http://127.0.0.1:5000/games/${gameId}`, updatedGame);
+        alert(response.data.message);
+        document.getElementById('edit-game-form').style.display = 'none';
+        getGames(); 
+    } catch (error) {
+        console.error('Error updating game:', error);
+        alert('Failed to update game');
+    }
+}
+
+
+
+function addCustomer(event) {
+    event.preventDefault();
+    const customerData = {
+        name: document.getElementById('customer-name').value,
+        email: document.getElementById('customer-email').value,
+        phone: document.getElementById('customer-phone').value
+    };
+    axios.post('http://127.0.0.1:5000/customers', customerData)
+        .then(response => {
+            alert(response.data.message);
+        })
+        .catch(error => {
+            console.error('Error adding customer:', error);
+            alert('Failed to add customer.');
+        });
+}
+
+const addCustomerForm = document.getElementById('add-customer-form');
+if (addCustomerForm) {
+    addCustomerForm.addEventListener('submit', addCustomer);
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('games-list')) {
+        getGames();
+    }
+});
